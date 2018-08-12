@@ -8,35 +8,36 @@ import android.os.SystemClock
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 
+const val INITIAL_POINT = 0
+
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var pref: SharedPreferences
+    private lateinit var dtmg: DataManager
     private var isChrnoOn = false
     private var startTime:Long = 0
-    private var gamePoint = 0
+    //private var gamePoint = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        pref = getSharedPreferences("MAIN", Context.MODE_PRIVATE)
 
-        gamePoint = pref.getInt("point", 3600)
+        dtmg = DataManager(this)
 
-        result_textView.text = "${gamePoint}"
+        result_textView.text = "${dtmg.point}"
         start_stop_button.text = getText(R.string.start)
 
         start_stop_button.setOnClickListener(this::onStartStopButtonClicked)
         my_chrono.setOnChronometerTickListener {
-            result_textView.text = "${gamePoint - getTimerTime()}"
+            result_textView.text = "${dtmg.point - getTimerTime()}"
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        pref.edit().commit()
+        dtmg.save()
     }
 
-    private fun getTimerTime() = ((SystemClock.elapsedRealtime() - startTime) / 1000).toInt()
+    fun getTimerTime() = ((SystemClock.elapsedRealtime() - startTime) / 1000).toInt()
 
     private fun onStartStopButtonClicked(view: View) {
         if (!isChrnoOn) {
@@ -47,14 +48,32 @@ class MainActivity : AppCompatActivity() {
             isChrnoOn = true
         } else {
             my_chrono.stop()
-            gamePoint -= getTimerTime()
-            result_textView.text = "${gamePoint}"
-            val editor = pref.edit()
-            editor.putInt("point", gamePoint)
-            editor.commit()
+            dtmg.point -= getTimerTime()
+            result_textView.text = "${dtmg.point}"
 
             start_stop_button.text = getText(R.string.start)
             isChrnoOn = false
         }
+    }
+}
+
+class DataManager(myAct:MainActivity) {
+    /**
+     * データの保存と読み出しを行うクラス
+     * それ以外のことをやらせてはいけない
+     */
+    private val pref: SharedPreferences =
+            myAct.getSharedPreferences("MAIN", Context.MODE_PRIVATE)
+    private val editor = pref.edit()
+
+    var point : Int
+        get() = pref.getInt("point", INITIAL_POINT)
+        set(value) {
+            editor.putInt("point", value)
+            editor.apply()
+        }
+
+    fun save() {
+        editor.commit()
     }
 }
