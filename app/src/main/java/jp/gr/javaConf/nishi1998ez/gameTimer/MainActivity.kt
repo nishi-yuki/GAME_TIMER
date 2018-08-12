@@ -8,14 +8,14 @@ import android.os.SystemClock
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 
-const val INITIAL_POINT = 0
+const val INITIAL_POINT = 3600
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var dtmg: DataManager
     private var isChrnoOn = false
     private var startTime:Long = 0
-    //private var gamePoint = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
