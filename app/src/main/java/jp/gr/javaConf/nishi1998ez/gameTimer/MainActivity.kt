@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        dtmg = DataManager(this)
+        dtmg = DataManager(getSharedPreferences("MAIN", Context.MODE_PRIVATE))
 
         val time = dtmg.millisTimeSinceLastUse
         dtmg.point += (time * EVERYDAY_POINT / dtmg.ONE_DAY_MILLIS).toInt()
@@ -62,14 +62,13 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-class DataManager(myAct:MainActivity) {
+class DataManager(sharedPreferences: SharedPreferences) {
     /**
      * データの保存と読み出しを行うクラス
      * それ以外のことをやらせてはいけない
      * SQLにロジックを押し込むのはOK
      */
-    private val pref: SharedPreferences =
-            myAct.getSharedPreferences("MAIN", Context.MODE_PRIVATE)
+    private val pref: SharedPreferences = sharedPreferences
     private val editor = pref.edit()
 
     val ONE_DAY_MILLIS: Long = 1000 * 60 * 60 * 24
