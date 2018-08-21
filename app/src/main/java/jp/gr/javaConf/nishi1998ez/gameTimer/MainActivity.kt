@@ -7,8 +7,10 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 const val INITIAL_POINT = 3600
+const val EVERYDAY_POINT = 3600
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,6 +24,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         dtmg = DataManager(this)
+
+        val time = dtmg.millisTimeSinceLastUse
+        dtmg.point += (time * EVERYDAY_POINT / dtmg.ONE_DAY_MILLIS).toInt()
 
         result_textView.text = "${dtmg.point}"
         start_stop_button.text = getText(R.string.start)
@@ -61,10 +66,13 @@ class DataManager(myAct:MainActivity) {
     /**
      * データの保存と読み出しを行うクラス
      * それ以外のことをやらせてはいけない
+     * SQLにロジックを押し込むのはOK
      */
     private val pref: SharedPreferences =
             myAct.getSharedPreferences("MAIN", Context.MODE_PRIVATE)
     private val editor = pref.edit()
+
+    val ONE_DAY_MILLIS: Long = 1000 * 60 * 60 * 24
 
     var point : Int
         get() = pref.getInt("point", INITIAL_POINT)
@@ -73,7 +81,24 @@ class DataManager(myAct:MainActivity) {
             editor.apply()
         }
 
+    /*
+    var lastUsedDay : String
+        get() = pref.getString("last_used_day", "2018-08-27")
+        set(value) {
+            editor.putString("last_used_day", value)
+            editor.apply()
+        }
+    */
+    val millisTimeSinceLastUse : Long
+
+    init {
+        val now = Date().time
+        val lastTime = pref.getLong("last_used_time_millis", now)
+        millisTimeSinceLastUse = now - lastTime
+        editor.putLong("last_used_time_millis", now)
+    }
+
     fun save() {
-        editor.commit()
+        editor.commit() //この関数いらない気がする
     }
 }
